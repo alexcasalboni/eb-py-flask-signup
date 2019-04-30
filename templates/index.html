@@ -9,7 +9,7 @@
     <title>A New Startup: Sign Up Today!</title>
 
     <!-- Bootstrap core CSS -->
-    <link href="{{ url_for('static', filename="bootstrap/css/theme/" + theme + "/bootstrap.css") }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename="bootstrap/css/theme/default/bootstrap.css") }}" rel="stylesheet">
 
     <!-- Custom styles for this template -->
     <link href="{{ url_for('static', filename="bootstrap/css/jumbotron-narrow.css") }}" rel="stylesheet">
@@ -28,11 +28,7 @@
         </ul>
         <h3 class="text-muted">A New Startup</h3>
       </div>
-    	{% if flask_debug %}
-      <div class="alert alert-danger">
-        Flask is in debug mode. This is not safe for production.
-      </div>
-    	{% endif %}
+      
       <div id="signupSuccess" class="alert alert-success" style="display:none">
         <p id="signupSuccessText">Thanks for signing up! You'll be among the first to know when we launch.</p>
       </div>
@@ -63,7 +59,6 @@
              </div>
              <div class="modal-body">
                <form id="signupForm" role="form">
-                 <input type="hidden" id="theme" name="theme" value="{{theme}}"/>
                  <div class="form-group">
                    <label for="name">Name</label>
                    <input type="text" class="form-control" id="name" name="name" placeholder="Your name">

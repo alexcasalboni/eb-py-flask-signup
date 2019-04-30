@@ -26,38 +26,41 @@ from boto.dynamodb2.exceptions import ConditionalCheckFailedException
 from boto import sns
 
 # Default config vals
-THEME = 'default' if os.environ.get('THEME') is None else os.environ.get('THEME')
-FLASK_DEBUG = 'false' if os.environ.get('FLASK_DEBUG') is None else os.environ.get('FLASK_DEBUG')
+FLASK_DEBUG = os.environ.get('FLASK_DEBUG') or 'false'
 
 # Create the Flask app
-application = flask.Flask(__name__)
+app = flask.Flask(__name__)
 
 # Load config values specified above
-application.config.from_object(__name__)
+app.config.from_object('config')
 
 # Load configuration vals from a file
-application.config.from_envvar('APP_CONFIG', silent=True)
+app.config.from_envvar('APP_CONFIG', silent=True)
 
 # Only enable Flask debugging if an env var is set to true
-application.debug = application.config['FLASK_DEBUG'] in ['true', 'True']
+app.debug = app.config['FLASK_DEBUG'] in ['true', 'True']
 
 # Connect to DynamoDB and get ref to Table
-ddb_conn = dynamodb2.connect_to_region(application.config['AWS_REGION'])
-ddb_table = Table(table_name=application.config['STARTUP_SIGNUP_TABLE'],
-                  connection=ddb_conn)
+ddb_conn = dynamodb2.connect_to_region(app.config['AWS_REGION'])
+ddb_table = Table(
+    table_name=app.config['STARTUP_SIGNUP_TABLE'],
+    connection=ddb_conn,
+)
 
 # Connect to SNS
-sns_conn = sns.connect_to_region(application.config['AWS_REGION'])
+sns_conn = sns.connect_to_region(app.config['AWS_REGION'])
 
 
-@application.route('/')
+@app.route('/')
 def welcome():
-    theme = application.config['THEME']
-    return flask.render_template('index.html', theme=theme, flask_debug=application.debug)
+    return flask.render_template('index.html')
 
 
-@application.route('/signup', methods=['POST'])
+@app.route('/signup', methods=['POST'])
 def signup():
+    if app.debug:
+        print "[DEBUG] Signup with body: %s" % json.dumps(request.form)
+
     signup_data = dict()
     for item in request.form:
         signup_data[item] = request.form[item]
@@ -78,10 +81,10 @@ def store_in_dynamo(signup_data):
 
 def publish_to_sns(signup_data):
     try:
-        sns_conn.publish(application.config['NEW_SIGNUP_TOPIC'], json.dumps(signup_data), "New signup: %s" % signup_data['email'])
+        sns_conn.publish(app.config['NEW_SIGNUP_TOPIC'], json.dumps(signup_data), "New signup: %s" % signup_data['email'])
     except Exception as ex:
         sys.stderr.write("Error publishing subscription message to SNS: %s" % ex.message)
 
 
 if __name__ == '__main__':
-    application.run(host='0.0.0.0')
+    app.run(host='0.0.0.0')
