@@ -9,3 +9,5 @@ bin
 include
 lib
 pip-selfcheck.json
+venv/*
+template-packaged.yml
