@@ -1,0 +1,103 @@
+AWSTemplateFormatVersion : '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Serverless Signup
+
+Globals:
+  Api:
+    Cors:
+      AllowHeaders: "'x-requested-with'"
+      AllowOrigin: "'http://serverless-signup.s3-website-eu-west-1.amazonaws.com'"
+
+Resources:
+
+  SignUpFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: backend  # where the source code is (folder)
+      Handler: application.signup  # where the source code is (file + function)
+      Runtime: python2.7
+      Timeout: 10  # in seconds
+      MemorySize: 1024  # in MB
+      Environment:
+        Variables:
+          STARTUP_SIGNUP_TABLE: !Ref StartupSignupsTable
+          NEW_SIGNUP_TOPIC: !Ref NewSignupTopic
+      Events:
+        PostAPI:
+          Type: Api
+          Properties:
+            Path: /signup
+            Method: post
+      Policies:
+        - AWSLambdaExecute  # basic permissions
+
+        # DynamoDB Write permissions
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:PutItem
+              Resource: !GetAtt StartupSignupsTable.Arn
+
+        # SNS Publish permissions
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - sns:Publish
+              Resource: !Ref NewSignupTopic
+
+  StartupSignupsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      KeySchema: 
+        HashKeyElement:
+          AttributeName: "email"
+          AttributeType: "S"
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+
+  NewSignupQueue: 
+    Type: AWS::SQS::Queue
+
+  NewSignupTopic:
+    Type: AWS::SNS::Topic
+    Properties: 
+      Subscription:
+        - Endpoint: alexsaxmib@gmail.com
+          Protocol: email
+        - Endpoint:
+            Fn::GetAtt:  ["NewSignupQueue", "Arn"]
+          Protocol: "sqs"
+
+  AllowSNS2SQSPolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties: 
+      Queues: 
+        - !Ref NewSignupQueue
+      PolicyDocument: 
+        Version: "2008-10-17"
+        Id: "PublicationPolicy"
+        Statement: 
+          - 
+            Sid: "Allow-SNS-SendMessage"
+            Effect: "Allow"
+            Principal: 
+              AWS: "*"
+            Action: ["sqs:SendMessage"]
+            Resource: !GetAtt NewSignupQueue.Arn
+            Condition: 
+              ArnEquals: 
+                aws:SourceArn: !Ref NewSignupTopic
+
+Outputs:
+  Endpoint:
+    Value: !Join ["", [
+      "https://",
+      !Ref ServerlessRestApi,
+      ".execute-api.",
+      !Ref "AWS::Region",
+      ".amazonaws.com/",
+      !Ref ServerlessRestApiProdStage
+    ]]

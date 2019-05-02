@@ -9,10 +9,10 @@
     <title>A New Startup: Sign Up Today!</title>
 
     <!-- Bootstrap core CSS -->
-    <link href="{{ url_for('static', filename="bootstrap/css/theme/default/bootstrap.css") }}" rel="stylesheet">
+    <link href="bootstrap/css/theme/default/bootstrap.css" rel="stylesheet">
 
     <!-- Custom styles for this template -->
-    <link href="{{ url_for('static', filename="bootstrap/css/jumbotron-narrow.css") }}" rel="stylesheet">
+    <link href="bootstrap/css/jumbotron-narrow.css" rel="stylesheet">
 
   </head>
 
@@ -46,7 +46,7 @@
 
 
       <div class="footer">
-        <p>&copy; A New Startup 2013</p>
+        <p>&copy; A New Startup 2019</p>
       </div>
       
       <!-- Modal -->
@@ -84,29 +84,39 @@
 
     </div> <!-- /container -->
 
-    <script src="{{ url_for('static', filename="jquery/jquery.js") }}"></script>
-    <script src="{{ url_for('static', filename="bootstrap/js/bootstrap.min.js") }}"></script>
+    <script src="jquery/jquery.js"></script>
+    <script src="bootstrap/js/bootstrap.min.js"></script>
+    <script src="config.js"></script>
     <script type="text/javascript">
     $(document).ready(function() {
       $("#signup").click(function() {
-        $.post( "/signup", $("#signupForm").serialize(),
-                function(data) {
+
+        var body = {};
+        $("#signupForm").serializeArray().map(function(obj) {
+          body[obj.name] = obj.value;
+        })
+
+        $.post(_config.API + "/signup", JSON.stringify(body), null, "json")
+          .success(function(data) {
                   $("#signupSuccess").show();
-                }
-              )
-              .error(function(xhr) {
-                switch(xhr.status) {
-                  case 409:
-                    $("#signupDuplicate").show();
-                    break;
-                  default:
-                    $("#signupError").show();
-                }
-              })
-              .always(function() {
-                $("#signupModal").modal('hide');
-              });
-      })
+          })
+          .error(function(xhr) {
+            switch(xhr.status) {
+              case 200:  // JSON parsing error
+                $("#signupSuccess").show();
+                break;
+              case 409:
+                $("#signupDuplicate").show();
+                break;
+              default: // real error
+                $("#signupError").show();
+                break;
+            }
+          })
+          .always(function() {
+            $("#signupModal").modal('hide');
+          });
+      });
     })
     </script>
   </body>

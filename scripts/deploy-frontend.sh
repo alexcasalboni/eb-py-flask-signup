@@ -1,0 +1,1 @@
+aws s3 sync static/ s3://serverless-signup --acl public-read
