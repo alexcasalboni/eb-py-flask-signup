@@ -77,6 +77,7 @@ def _response(status, message):
 def store_in_dynamo(signup_data):
     DDB_TABLE.put_item(
         Item=signup_data,
+        ConditionExpression="attribute_not_exists(email)",
     )
 
 
