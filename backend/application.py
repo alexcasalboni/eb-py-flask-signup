@@ -19,11 +19,8 @@ import boto3
 from botocore.exceptions import ClientError
 
 # Default config vals
-FLASK_DEBUG = os.environ.get('FLASK_DEBUG') or 'false'
 DYNAMODB_TABLE_NAME = os.environ['STARTUP_SIGNUP_TABLE']
 SNS_TOPIC = os.environ['NEW_SIGNUP_TOPIC']
-
-# Only enable Flask debugging if an env var is set to true
 DEBUG = os.environ.get('FLASK_DEBUG') in ['true', 'True']
 
 # Connect to DynamoDB and get ref to Table
