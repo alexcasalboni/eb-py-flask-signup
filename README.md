@@ -1,4 +1,18 @@
-# eb-py-flask-signup
+# New serverless version of this app
+
+How to deploy:
+
+```bash 
+# the backend first
+bash scripts/deploy-backend.sh
+
+# note the new API path and copy it to the frontend config file
+
+# then frontend
+bash scripts/deploy-frontend.sh
+```
+
+# eb-py-flask-signup (OLD)
 This Python sample application uses the [Flask](http://flask.pocoo.org/) framework and [Bootstrap](http://getbootstrap.com/) to build a simple, scalable customer signup form that is deployed to [AWS Elastic Beanstalk](http://aws.amazon.com/elasticbeanstalk/). The application stores data in [Amazon DynamoDB](http://aws.amazon.com/dynamodb/) and publishes notifications to the [Amazon Simple Notification Service (SNS)](http://aws.amazon.com/sns/) when a customer fills out the form.
 
 ## Instructional Videos
